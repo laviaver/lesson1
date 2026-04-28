@@ -9,7 +9,7 @@ const getEmployees = asyncHandler(async (req, res) => {
 
 // GET by ID
 const getEmployee = asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   const employee = await employeeService.getEmployeeById(id);
 
