@@ -3,8 +3,15 @@ const asyncHandler = require("../middleware/asyncHandler");
 
 // GET all
 const getEmployees = asyncHandler(async (req, res) => {
-  const employees = await employeeService.getAllEmployees();
-  res.json(employees);
+  const { page = 1, limit = 10, department } = req.query;
+
+  const result = await employeeService.getAllEmployees(
+    parseInt(page),
+    parseInt(limit),
+    { department }
+  );
+
+  res.json(result);
 });
 
 // GET by ID
@@ -33,7 +40,7 @@ const createEmployee = asyncHandler(async (req, res) => {
 
 // DELETE
 const deleteEmployee = asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   const result = await employeeService.deleteEmployeeById(id);
 
@@ -48,7 +55,7 @@ const deleteEmployee = asyncHandler(async (req, res) => {
 
 // PUT
 const updateEmployee = asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   const updated = await employeeService.updateEmployeeById(id, req.body);
 

@@ -24,6 +24,10 @@ function validateUpdateEmployee(req, res, next) {
     });
   }
 
+  // ✅ Normalization (AFTER validation passes)
+  req.body.name = name.trim();
+  req.body.department = department.trim();
+  
   next();
 }
 
