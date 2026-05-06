@@ -25,3 +25,5 @@ function validateEmployee(req, res, next) {
 
   next();
 }
+
+module.exports = validateEmployee;

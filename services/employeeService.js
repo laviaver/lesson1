@@ -1,8 +1,39 @@
 const Employee = require("../models/Employee");
 
 // GET ALL
-async function getAllEmployees() {
-  return await Employee.find();
+async function getAllEmployees(page = 1, limit = 10, filters = {}) {
+  const skip = (page - 1) * limit;
+
+  const query = {};
+
+   // ✅ FILTER
+  if (filters.department) {
+    query.department = filters.department;
+  }
+
+   // ✅ SEARCH
+   if (filters.search && filters.search.trim() !== "") {
+    query.$or = [
+      { name: { $regex: filters.search, $options: "i" } },
+      { department: { $regex: filters.search, $options: "i" } },
+    ];
+  }
+
+  const [employees, total] = await Promise.all([
+    Employee.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Employee.countDocuments(query),
+  ]);
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    data: employees,
+  };
 }
 
 // GET BY ID
