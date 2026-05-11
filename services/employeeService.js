@@ -19,9 +19,25 @@ async function getAllEmployees(page = 1, limit = 10, filters = {}) {
     ];
   }
 
+  // ✅ SORTING
+  let sortOption = { createdAt: -1 }; // default
+
+  if (filters.sort) {
+    const field = filters.sort.startsWith("-")
+      ? filters.sort.substring(1)
+      : filters.sort;
+
+    const direction = filters.sort.startsWith("-") ? -1 : 1;
+
+    sortOption = { [field]: direction };
+  }
+
+
+  // ✅ PARALLEL QUERIES
   const [employees, total] = await Promise.all([
     Employee.find(query)
-      .sort({ createdAt: -1 })
+      .collation({ locale: "en" })
+      .sort(sortOption)
       .skip(skip)
       .limit(limit),
     Employee.countDocuments(query),

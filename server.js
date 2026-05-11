@@ -8,9 +8,6 @@ const errorHandler = require("./middleware/errorHandler");
 
 app.use(express.json());
 
-// connect MongoDB
-connectDB();
-
 // Root route
 app.get("/", (req, res) => {
   res.send("Server is running");
@@ -27,9 +24,15 @@ app.use("/employees", employeesRoutes);
 app.use(errorHandler);
 
 const PORT = 3000;
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Server running on http://localhost:3000");
-});
+
+async function startServer() {
+  await connectDB();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+startServer();
 
 
 

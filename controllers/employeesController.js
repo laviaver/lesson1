@@ -3,12 +3,12 @@ const asyncHandler = require("../middleware/asyncHandler");
 
 // GET all
 const getEmployees = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, department, search } = req.query;
+  const { page = 1, limit = 10, department, search, sort } = req.query;
 
   const result = await employeeService.getAllEmployees(
     parseInt(page),
     parseInt(limit),
-    { department, search }
+    { department, search, sort }
   );
 
   res.json(result);
