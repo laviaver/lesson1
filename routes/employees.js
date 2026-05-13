@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { writeLimiter } = require("../middleware/rateLimiter");
 
 const {
   getEmployees,
@@ -16,8 +17,8 @@ const validateCreateEmployee = require("../middleware/validateCreateEmployee");
 // Routes
 router.get("/", getEmployees);
 router.get("/:id", getEmployee);
-router.post("/", validateCreateEmployee, createEmployee);
-router.put("/:id", validateUpdateEmployee, updateEmployee);
-router.delete("/:id", deleteEmployee);
+router.post("/", writeLimiter, validateCreateEmployee, createEmployee);
+router.put("/:id", writeLimiter, validateUpdateEmployee, updateEmployee);
+router.delete("/:id", writeLimiter, deleteEmployee);
 
 module.exports = router;

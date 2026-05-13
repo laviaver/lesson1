@@ -1,5 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/db");
+const helmet = require("helmet");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 const app = express();
 
@@ -7,6 +9,8 @@ const employeesRoutes = require("./routes/employees");
 const errorHandler = require("./middleware/errorHandler");
 
 app.use(express.json());
+app.use(helmet());
+app.use("/employees", apiLimiter);
 
 // Root route
 app.get("/", (req, res) => {
@@ -33,6 +37,3 @@ async function startServer() {
 }
 
 startServer();
-
-
-
