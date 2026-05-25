@@ -7,9 +7,11 @@ const app = express();
 
 const employeesRoutes = require("./routes/employees");
 const errorHandler = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/requestLogger");
 
 app.use(express.json());
 app.use(helmet());
+app.use(requestLogger);
 app.use("/employees", apiLimiter);
 
 // Root route

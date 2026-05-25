@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const path = require("path");
+const logger = require("../utils/logger");
 
 async function connectDB() {
   require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
@@ -10,18 +11,23 @@ async function connectDB() {
   if (atlasUri) {
     try {
       await mongoose.connect(atlasUri, { serverSelectionTimeoutMS: 5000 });
-      console.log("MongoDB connected successfully (Atlas)");
+      logger.info("MongoDB connected (Atlas)");
       return;
     } catch (err) {
-      console.warn("Atlas connection failed, falling back to local DB...");
+      logger.warn("Atlas connection failed, falling back to local DB", {
+        error: err.message,
+      });
     }
   }
 
   try {
     await mongoose.connect(localUri, { serverSelectionTimeoutMS: 5000 });
-    console.log("MongoDB connected successfully (Local)");
+    logger.info("MongoDB connected (Local)");
   } catch (err) {
-    console.error("MongoDB connection failed:", err);
+    logger.error("MongoDB connection failed", {
+      error: err.message,
+      stack: err.stack,
+    });
     process.exit(1);
   }
 }
