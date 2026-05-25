@@ -4,7 +4,7 @@ function validate(schema) {
   
       if (!result.success) {
         // Collect ALL errors at once, not just the first one
-        const errors = result.error.errors.map((err) => ({
+        const errors = result.error.issues.map((err) => ({
           field: err.path.join("."),
           message: err.message,
         }));
