@@ -1,40 +1,35 @@
 const express = require("express");
-const connectDB = require("./config/db");
 const helmet = require("helmet");
+const connectDB = require("./config/db");
 const { apiLimiter } = require("./middleware/rateLimiter");
+const requestLogger = require("./middleware/requestLogger");
+const employeesRoutes = require("./routes/employees");
+const authRoutes = require("./routes/authRoutes");
+const errorHandler = require("./middleware/errorHandler");
+const logger = require("./utils/logger");
 
 const app = express();
 
-const employeesRoutes = require("./routes/employees");
-const errorHandler = require("./middleware/errorHandler");
-const requestLogger = require("./middleware/requestLogger");
-
-app.use(express.json());
+// Security & parsing — order matters
 app.use(helmet());
+app.use(express.json());
+app.use(apiLimiter);
 app.use(requestLogger);
-app.use("/employees", apiLimiter);
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
-
-app.get("/test", (req, res) => {
-  res.send("Server is working");
-});
-
-// Use routes
+// Routes
+app.get("/", (req, res) => res.send("Server is running"));
+app.use("/auth", authRoutes);
 app.use("/employees", employeesRoutes);
 
-// Error handler
+// Error handler — always last
 app.use(errorHandler);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   await connectDB();
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    logger.info(`Server running on http://localhost:${PORT}`);
   });
 }
 

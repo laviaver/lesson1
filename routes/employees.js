@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { writeLimiter } = require("../middleware/rateLimiter");
 const validate = require("../middleware/validate");
+const authenticate = require("../middleware/authenticate");
 const {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -15,11 +16,10 @@ const {
   updateEmployee,
 } = require("../controllers/employeesController");
 
-// Routes
-router.get("/", getEmployees);
-router.get("/:id", getEmployee);
-router.post("/", writeLimiter, validate(createEmployeeSchema), createEmployee);
-router.put("/:id", writeLimiter, validate(updateEmployeeSchema), updateEmployee);
-router.delete("/:id", writeLimiter, deleteEmployee);
+router.get("/", authenticate, getEmployees);
+router.get("/:id", authenticate, getEmployee);
+router.post("/", authenticate, writeLimiter, validate(createEmployeeSchema), createEmployee);
+router.put("/:id", authenticate, writeLimiter, validate(updateEmployeeSchema), updateEmployee);
+router.delete("/:id", authenticate, writeLimiter, deleteEmployee);
 
 module.exports = router;
