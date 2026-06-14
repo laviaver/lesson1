@@ -4,6 +4,7 @@ const { writeLimiter } = require("../middleware/rateLimiter");
 const validate = require("../middleware/validate");
 const authenticate = require("../middleware/authenticate");
 const authorize = require("../middleware/authorize");
+const cache = require("../middleware/cache");
 
 const {
   createEmployeeSchema,
@@ -18,8 +19,10 @@ const {
   updateEmployee,
 } = require("../controllers/employeesController");
 
+const CACHE_TTL = parseInt(process.env.CACHE_TTL || 60);
+
 // Any authenticated user can read
-router.get("/", authenticate, getEmployees);
+router.get("/", authenticate, cache(CACHE_TTL), getEmployees);
 router.get("/:id", authenticate, getEmployee);
 
 // Only admins can write

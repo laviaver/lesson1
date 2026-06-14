@@ -1,4 +1,5 @@
 const Employee = require("../models/Employee");
+const { invalidateEmployeeCache } = require("./cacheService");
 
 // ✅ Whitelist of fields that are safe to sort by
 const ALLOWED_SORT_FIELDS = new Set(["name", "department", "createdAt"]);
@@ -65,21 +66,27 @@ async function getEmployeeById(id) {
 // CREATE
 async function createEmployee(name, department) {
   const employee = new Employee({ name, department });
-  return await employee.save();
+  const saved = await employee.save();         // ✅ store result before invalidating
+  await invalidateEmployeeCache();             // ✅ clear stale cache after successful save
+  return saved;                                // ✅ return the stored result instead of the save() promise directly
 }
 
 // DELETE
 async function deleteEmployeeById(id) {
-  return await Employee.findByIdAndDelete(id);
+  const result = await Employee.findByIdAndDelete(id); // ✅ CHANGED — stored in variable so we can check it
+  if (result) await invalidateEmployeeCache();         // ✅ NEW LINE — only invalidate if something was actually deleted
+  return result;                                       // ✅ NEW LINE — explicitly return result
 }
 
 // UPDATE
 async function updateEmployeeById(id, updates) {
-  return await Employee.findByIdAndUpdate(
+  const updated = await Employee.findByIdAndUpdate(    // ✅ CHANGED — stored in variable so we can check it
     id,
     updates,
-    { new: true, runValidators: true } // ✅ added runValidators
+    { new: true, runValidators: true }
   );
+  if (updated) await invalidateEmployeeCache();        // ✅ NEW LINE — only invalidate if something was actually updated
+  return updated;                                      // ✅ NEW LINE — explicitly return result
 }
 
 module.exports = {

@@ -1,6 +1,7 @@
 const express = require("express");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
+const { connectRedis } = require("./config/redis");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const requestLogger = require("./middleware/requestLogger");
 const employeesRoutes = require("./routes/employees");
@@ -18,8 +19,8 @@ app.use(requestLogger);
 
 // Routes
 app.get("/", (req, res) => res.send("Server is running"));
-app.use("/auth", authRoutes);
-app.use("/employees", employeesRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/employees", employeesRoutes);
 
 // Error handler — always last
 app.use(errorHandler);
@@ -28,6 +29,7 @@ const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   await connectDB();
+  await connectRedis();
   app.listen(PORT, "0.0.0.0", () => {
     logger.info(`Server running on http://localhost:${PORT}`);
   });
