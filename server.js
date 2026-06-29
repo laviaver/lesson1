@@ -30,6 +30,7 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   await connectDB();
   await connectRedis();
+  require("./workers/employeeWorker");  // start the worker
   app.listen(PORT, "0.0.0.0", () => {
     logger.info(`Server running on http://localhost:${PORT}`);
   });

@@ -1,5 +1,6 @@
 const Employee = require("../models/Employee");
 const { invalidateEmployeeCache } = require("./cacheService");
+const { employeeQueue } = require("../config/queue");         
 
 // ✅ Whitelist of fields that are safe to sort by
 const ALLOWED_SORT_FIELDS = new Set(["name", "department", "createdAt"]);
@@ -68,14 +69,29 @@ async function createEmployee(name, department) {
   const employee = new Employee({ name, department });
   const saved = await employee.save();         // ✅ store result before invalidating
   await invalidateEmployeeCache();             // ✅ clear stale cache after successful save
+  
+  // queue welcome email job after successful save
+  await employeeQueue.add("send-welcome-email", {
+    name: saved.name,
+    department: saved.department,
+    employeeId: saved._id,
+  });
+
   return saved;                                // ✅ return the stored result instead of the save() promise directly
 }
 
 // DELETE
 async function deleteEmployeeById(id) {
-  const result = await Employee.findByIdAndDelete(id); // ✅ CHANGED — stored in variable so we can check it
-  if (result) await invalidateEmployeeCache();         // ✅ NEW LINE — only invalidate if something was actually deleted
-  return result;                                       // ✅ NEW LINE — explicitly return result
+  const result = await Employee.findByIdAndDelete(id);
+  if (result) {
+    await invalidateEmployeeCache();
+    await employeeQueue.add("log-employee-deleted", {
+      employeeId: result._id,
+      name: result.name,
+      department: result.department,
+    });
+  }
+  return result;
 }
 
 // UPDATE
