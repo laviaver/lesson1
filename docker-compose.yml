@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+
+  # ── MongoDB ──────────────────────────────────────────
+  mongodb:
+    image: mongo:7          # official MongoDB image — we don't build this ourselves
+    container_name: employee_mongodb
+    restart: unless-stopped  # restart automatically unless we manually stop it
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: employee_db
+    volumes:
+      - mongodb_data:/data/db   # persist data outside the container
+    networks:
+      - employee_network
+
+  # ── Redis ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine   # official Redis image — alpine for small size
+    container_name: employee_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data    # persist Redis data
+    networks:
+      - employee_network
+
+  # ── API ───────────────────────────────────────────────
+  api:
+    build:
+      context: .            # build from current directory
+      target: production    # use the production stage from our Dockerfile
+    container_name: employee_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"         # host:container — maps your laptop's port 3000 to the container's port 3000
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGO_URI: mongodb://root:rootpassword@mongodb:27017/employee_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis      # notice: "redis" — the service name, not localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}           # read from your .env file
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CACHE_TTL: ${CACHE_TTL}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - employee_network
+
+  # ── Worker ────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      target: production
+    container_name: employee_worker
+    restart: unless-stopped
+    command: node workers/employeeWorker.js    # overrides the default CMD from Dockerfile
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://root:rootpassword@mongodb:27017/employee_db?authSource=admin
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CACHE_TTL: ${CACHE_TTL}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - employee_network
+
+# ── Volumes ───────────────────────────────────────────
+volumes:
+  mongodb_data:    # Docker manages this — data persists across container restarts
+  redis_data:
+
+# ── Networks ──────────────────────────────────────────
+networks:
+  employee_network:
+    driver: bridge  # standard network driver for single-host setups
