@@ -1,5 +1,3 @@
-const { jest } = require("@jest/globals");
-
 // Mock the Employee model — replace it with a fake version
 // This means tests never touch a real database
 jest.mock("../../models/Employee");
