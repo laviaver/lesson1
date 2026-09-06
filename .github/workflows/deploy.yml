@@ -25,7 +25,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --testPathPattern="__tests__/unit"
+        run: npx jest --testPathPattern="unit" --forceExit
         env:
           NODE_ENV: test
           JWT_SECRET: test-secret-for-ci
